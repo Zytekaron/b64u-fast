@@ -1,0 +1,5 @@
+# Project exclude paths
+.idea
+/build/
+/cmake-build-debug/
+/node_modules/
