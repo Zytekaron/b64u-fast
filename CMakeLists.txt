@@ -3,6 +3,6 @@ project(b64u-fast)
 
 set(CMAKE_CXX_STANDARD 11)
 
-add_executable(node_binding src/binding.cpp src/base64.h)
+add_executable(b64u_fast src/binding.cpp src/lib/config.h)
 
 include_directories(C:/Zytekaron/node_modules/node-addon-api)

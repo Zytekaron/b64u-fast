@@ -1,6 +1,6 @@
 #include <napi.h>
 
-#include "base64.h"
+#include "include/libbase64.h"
 
 Napi::Value EncodeWrapped(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
@@ -15,57 +15,44 @@ Napi::Value EncodeWrapped(const Napi::CallbackInfo &info) {
         return env.Null();
     }
 
-    bool padding = false;
+    Napi::String string = info[0].ToString();
 
-    if (info.Length() > 1) {
-        padding = info[1].As<Napi::Boolean>();
-    }
+    const char *data = string.Utf8Value().c_str();
+    size_t length = strlen(data);
 
-    Napi::String input = info[0].ToString();
-    std::string data = input.Utf8Value();
+    size_t outAlloc = 4 + length * 4 / 3;
+    char *out = static_cast<char*>(malloc(outAlloc));
+    size_t outLength;
 
-    std::string encoded = base64::encode(data, padding);
-    return Napi::String::New(env, encoded);
+    base64_encode(data, length, out, &outLength, 0);
+
+    return Napi::String::New(env, out, outLength);
 }
 
-Napi::Value DecodeWrapped(const Napi::CallbackInfo &info) {
-    Napi::Env env = info.Env();
-
-    if (info.Length() != 1) {
-        Napi::TypeError::New(env, "Expected 1 argument for function call").ThrowAsJavaScriptException();
-        return env.Null();
-    }
-
-    if (!info[0].IsString()) {
-        Napi::TypeError::New(env, "Expected ").ThrowAsJavaScriptException();
-        return env.Null();
-    }
-
-    Napi::String input = info[0].ToString();
-    std::string data = input.Utf8Value();
-
-    std::string decoded = base64::decode(data);
-    return Napi::String::New(env, decoded);
-}
-
-Napi::Value hello(const Napi::CallbackInfo &info) {
-    Napi::Env env = info.Env();
-    return Napi::String::New(env, "Hello!");
-}
+//Napi::Value DecodeWrapped(const Napi::CallbackInfo &info) {
+//    Napi::Env env = info.Env();
+//
+//    if (info.Length() != 1) {
+//        Napi::TypeError::New(env, "Expected 1 argument for function call").ThrowAsJavaScriptException();
+//        return env.Null();
+//    }
+//
+//    if (!info[0].IsString()) {
+//        Napi::TypeError::New(env, "Expected ").ThrowAsJavaScriptException();
+//        return env.Null();
+//    }
+//
+//    Napi::String input = info[0].ToString();
+//    std::string data = input.Utf8Value();
+//
+//    std::string decoded = base64::decode(data);
+//    return Napi::String::New(env, decoded);
+//}
 
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
     exports.Set("encode", Napi::Function::New<EncodeWrapped>(env));
-    exports.Set("decode", Napi::Function::New<DecodeWrapped>(env));
+//    exports.Set("decode", Napi::Function::New<DecodeWrapped>(env));
     return exports;
 }
 
 NODE_API_MODULE(addon, Init)
-
-//std::string hello() {
-//    return "Hello World";
-//}
-//
-//Napi::String HelloWrapped(const Napi::CallbackInfo &info) {
-//    Napi::Env env = info.Env();
-//    return Napi::String::New(env, hello());
-//}
